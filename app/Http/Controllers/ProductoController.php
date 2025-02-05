@@ -73,6 +73,57 @@ public function show($id)
     // Si el producto se encuentra, devolverlo en formato JSON
     return response()->json($producto);
 }
+public function getProductosFiltrados(Request $request)
+{
+    $request->validate([
+        'color' => 'nullable|string',
+        'tamaño' => 'nullable|string|in:xs,s,m,l,xl,xxl,xxxl',
+        'precioRange' => 'nullable|integer|between:1,6', // Validar que el precioRange esté entre 1 y 6
+    ]);
+
+    $query = Producto::query();
+
+    // Filtrado por color
+    if ($request->has('color') && $request->color != null) {
+        $query->where('color', $request->color);
+    }
+
+    // Filtrado por tamaño
+    if ($request->has('tamaño') && $request->tamaño != null) {
+        $query->where('tamaño', $request->tamaño);
+    }
+
+    // Filtrado por precio
+    if ($request->has('precioRange') && $request->precioRange != null) {
+        $range = $request->precioRange;
+        switch ($range) {
+            case 1:
+                $query->whereBetween('precio', [0, 20]);
+                break;
+            case 2:
+                $query->whereBetween('precio', [20, 50]);
+                break;
+            case 3:
+                $query->whereBetween('precio', [50, 100]);
+                break;
+            case 4:
+                $query->whereBetween('precio', [100, 200]);
+                break;
+            case 5:
+                $query->whereBetween('precio', [200, 500]);
+                break;
+            case 6:
+                $query->where('precio', '>', 500);
+                break;
+            default:
+                return response()->json(['message' => 'Rango de precio inválido'], 400);
+        }
+    }
+
+    $productos = $query->get();
+    return response()->json($productos);
+}
+
 
 
 

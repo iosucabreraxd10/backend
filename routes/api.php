@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\CarritoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -61,3 +62,7 @@ Route::middleware('auth:sanctum')->get('/productos/proveedor', [ProductoControll
 Route::get('/productos', [ProductoController::class, 'getProductosPorCategoria']);
 Route::middleware('auth:sanctum')->get('/productos/{id}', [ProductoController::class, 'show']);
 
+Route::middleware('auth:sanctum')->post('/carrito', [CarritoController::class, 'agregarAlCarrito']);
+Route::middleware('auth:sanctum')->get('/carrito', [CarritoController::class, 'obtenerCarrito']);
+
+Route::get('/productos/filtrados', [ProductoController::class, 'getProductosFiltrados']);
