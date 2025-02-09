@@ -118,13 +118,124 @@ public function getProductosFiltrados(Request $request)
             default:
                 return response()->json(['message' => 'Rango de precio inválido'], 400);
         }
+        
     }
 
     $productos = $query->get();
     return response()->json($productos);
 }
+public function update(Request $request, $id)
+{
+    // Validar los datos entrantes
+    $validatedData = $request->validate([
+        'nombre' => 'required|string|max:255',
+        'materiales' => 'required|string|max:255',
+        'cuidados' => 'required|string|max:255',
+        'color' => 'required|string|max:50',
+        'descripcion' => 'required|string',
+        'precio' => 'required|numeric',
+        'composicion' => 'required|string|max:255',
+        'stock' => 'required|integer',
+        'genero' => 'required|in:hombre,mujer,unisex,niño,niña',
+        'tipo' => 'required|in:camiseta,pantalon',
+        'tamaño' => 'required|in:xs,s,m,l,xl,xxl,xxxl',
+        'categoria' => 'required|in:futbol,baloncesto,running,natacion,surf,ciclismo,skateboarding,fitness,tenis,boxeo',
+    ]);
 
+    // Buscar el producto
+    $producto = Producto::find($id);
+    if (!$producto) {
+        return response()->json(['error' => 'Producto no encontrado'], 404);
+    }
 
+    // Verificar si el usuario es dueño del producto
+    if ($producto->user_id !== auth()->id()) {
+        return response()->json(['error' => 'No autorizado'], 403);
+    }
+
+    // Actualizar el producto
+    $producto->update($validatedData);
+
+    return response()->json(['message' => 'Producto actualizado correctamente', 'producto' => $producto], 200);
+}
+
+public function destroy($id)
+{
+    // Buscar el producto
+    $producto = Producto::find($id);
+    if (!$producto) {
+        return response()->json(['error' => 'Producto no encontrado'], 404);
+    }
+
+    // Verificar si el usuario es dueño del producto
+    if ($producto->user_id !== auth()->id()) {
+        return response()->json(['error' => 'No autorizado'], 403);
+    }
+
+    // Eliminar el producto
+    $producto->delete();
+
+    return response()->json(['message' => 'Producto eliminado correctamente'], 200);
+}
+public function destroyByAdmin($id)
+{
+    try {
+        $user = auth()->user();
+
+        if (!$user || $user->rol !== 'admin') {
+            return response()->json(['error' => 'No autorizado'], 403);
+        }
+
+        $producto = Producto::find($id);
+        if (!$producto) {
+            return response()->json(['error' => 'Producto no encontrado'], 404);
+        }
+
+        $producto->delete();
+
+        return response()->json(['message' => 'Producto eliminado correctamente'], 200);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Error eliminando el producto'], 500);
+    }
+}
+public function index(Request $request)
+    {
+        $query = Producto::query();
+
+        // Filtro por categoría (opcional)
+        if ($request->has('categoria')) {
+            $query->where('categoria', $request->categoria);
+        }
+
+        // Filtro por color
+        if ($request->has('color')) {
+            $query->where('color', $request->color);
+        }
+
+        // Filtro por talla
+        if ($request->has('tamaño')) {
+            $query->where('tamaño', $request->tamaño);
+        }
+
+        // Filtro por género
+        if ($request->has('genero')) {
+            $generos = explode(',', $request->genero);
+            $query->whereIn('genero', $generos);
+        }
+
+        // Filtro por rango de precio
+        if ($request->has('precioMin')) {
+            $query->where('precio', '>=', $request->precioMin);
+        }
+
+        if ($request->has('precioMax')) {
+            $query->where('precio', '<=', $request->precioMax);
+        }
+
+        $productos = $query->get();
+
+        return response()->json($productos);
+    }
 
 
     

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Carrito;
+use Illuminate\Support\Facades\Auth;
 
 class CarritoController extends Controller
 {
@@ -39,31 +40,25 @@ class CarritoController extends Controller
         return response()->json(['error' => 'Error al agregar al carrito: ' . $e->getMessage()], 500);
     }
 }
-public function obtenerCarrito(Request $request)
-    {
-        // Verificar que el usuario está autenticado
-        $user = $request->user();
-        if (!$user) {
-            return response()->json(['error' => 'No autenticado'], 401);
-        }
+public function obtenerCarrito()
+{
+    $user = Auth::user();
+    $carrito = Carrito::where('usuario_id', $user->id)->with('producto')->get();
+    return response()->json($carrito);
+}
+public function eliminarDelCarrito($id)
+{
+    $user = Auth::user();
+    $carritoItem = Carrito::where('id', $id)->where('usuario_id', $user->id)->first();
 
-        try {
-            // Obtener los productos del carrito del usuario autenticado
-            $carrito = Carrito::where('usuario_id', $user->id)
-                              ->with('producto')  // Esto carga los datos del producto relacionado
-                              ->get();
-
-            // Verificar si el carrito está vacío
-            if ($carrito->isEmpty()) {
-                return response()->json(['message' => 'Tu carrito está vacío.']);
-            }
-
-            // Devolver los productos del carrito
-            return response()->json($carrito);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener el carrito: ' . $e->getMessage()], 500);
-        }
+    if (!$carritoItem) {
+        return response()->json(['error' => 'Producto no encontrado en el carrito'], 404);
     }
+
+    $carritoItem->delete();
+
+    return response()->json(['message' => 'Producto eliminado del carrito'], 200);
+}
 
 
 

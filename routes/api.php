@@ -6,6 +6,8 @@ use App\Http\Controllers\CarritoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\VisitController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -60,9 +62,18 @@ Route::middleware('auth:sanctum')->get('/proveedores', [AuthController::class, '
 Route::get('/productos/proveedor/{proveedorId}', [ProductoController::class, 'getProductosPorProveedor']);
 Route::middleware('auth:sanctum')->get('/productos/proveedor', [ProductoController::class, 'getProductosProveedor']);
 Route::get('/productos', [ProductoController::class, 'getProductosPorCategoria']);
-Route::middleware('auth:sanctum')->get('/productos/{id}', [ProductoController::class, 'show']);
-
+Route::get('/productos/{id}', [ProductoController::class, 'show']);
 Route::middleware('auth:sanctum')->post('/carrito', [CarritoController::class, 'agregarAlCarrito']);
 Route::middleware('auth:sanctum')->get('/carrito', [CarritoController::class, 'obtenerCarrito']);
 
 Route::get('/productos/filtrados', [ProductoController::class, 'getProductosFiltrados']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::put('/productos/{id}', [ProductoController::class, 'update']);
+    Route::delete('/productos/{id}', [ProductoController::class, 'destroy']);
+});
+Route::delete('/productos/admin/{id}', [ProductoController::class, 'destroyByAdmin'])->middleware('auth:sanctum');
+Route::delete('/carrito/{id}', [CarritoController::class, 'eliminarDelCarrito'])->middleware('auth:sanctum');
+
+//Localizacion
+Route::get('/estadisticas', [VisitController::class, 'getStats']);
+Route::post('/visitas', [VisitController::class, 'store']);
