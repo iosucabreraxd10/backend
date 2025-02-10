@@ -75,5 +75,7 @@ Route::delete('/productos/admin/{id}', [ProductoController::class, 'destroyByAdm
 Route::delete('/carrito/{id}', [CarritoController::class, 'eliminarDelCarrito'])->middleware('auth:sanctum');
 
 //Localizacion
+Route::get('location', [LocationController::class, 'getLocation']);//Estadisticas
 Route::get('/estadisticas', [VisitController::class, 'getStats']);
 Route::post('/visitas', [VisitController::class, 'store']);
+Route::get('/productos', [ProductoController::class, 'index']);
